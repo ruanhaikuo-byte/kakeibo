@@ -1,7 +1,7 @@
 package com.example.kakeibo.transaction;
 
-import com.example.kakeibo.category.Category;
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,9 +16,8 @@ public class Transaction {
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    @Column(name = "category_id", nullable = false)
+    private Long categoryId;
 
     @Column(nullable = false)
     private Long amount;
@@ -32,16 +31,33 @@ public class Transaction {
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
+    // JPA 要求必须有的空构造方法
+    protected Transaction() {}
+
+    // 真正会用到的构造方法，一次性把必填的值传进来
+    public Transaction(Long userId, Long categoryId, Long amount,
+                       LocalDate transactionDate, String memo) {
+        this.userId = userId;
+        this.categoryId = categoryId;
+        this.amount = amount;
+        this.transactionDate = transactionDate;
+        this.memo = memo;
+    }
+
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
-    public void setUserId(Long userId) { this.userId = userId; }
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+
     public Long getAmount() { return amount; }
     public void setAmount(Long amount) { this.amount = amount; }
+
     public LocalDate getTransactionDate() { return transactionDate; }
     public void setTransactionDate(LocalDate transactionDate) { this.transactionDate = transactionDate; }
+
     public String getMemo() { return memo; }
     public void setMemo(String memo) { this.memo = memo; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
 }
