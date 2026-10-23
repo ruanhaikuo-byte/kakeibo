@@ -4,6 +4,7 @@ import com.example.kakeibo.category.Category;
 import com.example.kakeibo.category.CategoryRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 // @Service 贴在类的正上方，是在告诉 Spring：
@@ -73,10 +74,33 @@ public class TransactionService {
     //删除语句
      transactionRepository.delete(transaction);
 }
-
-
-
-
+    //查询某个用户的全部记账，按日期从新到旧
+    // 参数 userId：当前登录用户的 id
+    //返回值 List<Transaction>：这个用户的记账列表（没有记账就是空列表，不是 null）
+public List<Transaction> findAllByUser(Long userId){
+        // 直接调用 Repository 里已经写好的方法
+    return transactionRepository.findByUserIdOrderByTransactionDateDesc(userId);
+}
+//取出一条"属于该用户"的记账（编辑页回显用）
+//参数 userId：当前登录用户的 id
+//参数 transactionId：要取的记账的 id（来自网址里的 5、6 这样的数字）
+public Transaction getOwened(Long userId, Long transactionId){
+    // 第 1 步：按 id 查。结果装在 Optional 里（一个盒子，里面可能有、也可能没有）
+    Optional<Transaction> optional = transactionRepository.findById(userId);
+    // 第 2 步：盒子是空的，说明这条记录不存在
+    if(!optional.isPresent()){
+        throw  new IllegalArgumentException("記録が見つかりません");
+    }
+    // 第 3 步：盒子里有东西，取出来
+    Transaction transaction = optional.get();
+    // 第 4 步：归属检查。记录里的 userId 必须等于当前用户的 id
+    // Long 是对象，比较要用 equals，不能用 ==
+    if (!transaction.getUserId().equals(userId)){
+        throw new IllegalArgumentException("不正な操作です");
+    }
+    // 第 5 步：两道检查都通过，返回这条记录
+    return transaction;
+}
 
 
 
