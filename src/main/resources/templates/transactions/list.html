@@ -22,6 +22,7 @@
             <th>カテゴリー</th>
             <th class="text-end">金額</th>
             <th>メモ</th>
+            <th></th>
         </tr>
         </thead>
         <tbody>
@@ -34,10 +35,11 @@
             <!-- 金额：每三位加逗号，后面拼上"円" -->
             <td class="text-end" th:text="${#numbers.formatInteger(t.amount, 3, 'COMMA')} + ' 円'"></td>
             <td th:text="${t.memo}"></td>
+            <td> <a th:href="@{/transactions/{id}/edit(id=${t.id})}" class="btn btn-sm btn-outline-primary">編集</a></td>
         </tr>
         <!-- th:if：条件成立才显示这一行。列表为空时提示没有记录 -->
         <tr th:if="${#lists.isEmpty(transactions)}">
-            <td colspan="4" class="text-center text-muted">まだ記録がありません</td>
+            <td colspan="5" class="text-center text-muted">まだ記録がありません</td>
         </tr>
         </tbody>
     </table>

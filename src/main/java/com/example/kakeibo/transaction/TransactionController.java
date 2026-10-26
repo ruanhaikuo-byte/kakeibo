@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.HashMap;
@@ -91,6 +92,44 @@ public class TransactionController {
         return "redirect:/transactions";
     }
 
+    @GetMapping("/transactions/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Authentication authentication,Model model){
+        Long userId = getCurrentUserId(authentication);
+        Transaction transaction = transactionService.getOwened(userId,id );
+        TransactionForm form = new TransactionForm();
+        form.setCategoryId(transaction.getCategoryId());
+        form.setAmount(transaction.getAmount());
+        form.setTransactionDate(transaction.getTransactionDate());
+        form.setMemo(transaction.getMemo());
+        model.addAttribute("transactionForm", form);
+        prepareForm(model, userId, "/transactions/" + id + "/edit", "記録を編集");
+
+        return "transactions/form";
+    }
+
+    // ===== 编辑：保存修改 =====
+    @PostMapping("/transactions/{id}/edit")
+    public String update(@PathVariable Long id,
+                         @Valid TransactionForm transactionForm, BindingResult bindingResult,
+                         Model model, Authentication authentication) {
+        Long userId = getCurrentUserId(authentication);
+
+        if (bindingResult.hasErrors()) {
+            prepareForm(model, userId, "/transactions/" + id + "/edit", "記録を編集");
+            return "transactions/form";
+        }
+
+        transactionService.update(
+                userId,
+                id,
+                transactionForm.getCategoryId(),
+                transactionForm.getAmount(),
+                transactionForm.getTransactionDate(),
+                transactionForm.getMemo()
+        );
+        return "redirect:/transactions";
+    }
+
     // 辅助方法：表单页（新增、编辑共用）需要的数据
     private void prepareForm(Model model, Long userId, String formAction, String pageTitle) {
         // 当前用户的分类，按排序号排好，给下拉框用
@@ -116,4 +155,5 @@ public class TransactionController {
         // 第 4 步：取出用户，返回他的 id
         return optional.get().getId();
     }
+
 }

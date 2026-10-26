@@ -50,10 +50,28 @@ public class TransactionService {
     }
 
     // 修改一笔已有的记账
-    public void update(Long userId, Long transactionId, Long categoryId, Long amount, LocalDate transactionDate, String meno){
-        // 第一步：用 transactionId 去数据库查这条记账记录
-        // 跟之前查分类是一样的套路，返回的也是一个"盒子"（Optional）
-        Optional<Transaction> transactionOptional = transactionRepository.findById(transactionId);
+// 修改一笔已有的记账
+    public void update(Long userId, Long transactionId, Long categoryId, Long amount, LocalDate transactionDate, String memo){
+        // ① 找出这一笔，并确认是当前用户的（getOwened 里已经检查好了）
+        Transaction transaction = getOwened(userId, transactionId);
+
+        // ② 检查新的分类：存在吗？是当前用户的吗？
+        Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+        if (!categoryOptional.isPresent()) {
+            throw new IllegalArgumentException("カテゴリーが見つかりません");
+        }
+        if (!categoryOptional.get().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("不正なカテゴリーです");
+        }
+
+        // ③ 把新值放进去（放进谁就 set 谁）
+        transaction.setCategoryId(categoryId);
+        transaction.setAmount(amount);
+        transaction.setTransactionDate(transactionDate);
+        transaction.setMemo(memo);
+
+        // ④ 存回数据库
+        transactionRepository.save(transaction);
     }
 
     //删除记录
@@ -86,7 +104,7 @@ public List<Transaction> findAllByUser(Long userId){
 //参数 transactionId：要取的记账的 id（来自网址里的 5、6 这样的数字）
 public Transaction getOwened(Long userId, Long transactionId){
     // 第 1 步：按 id 查。结果装在 Optional 里（一个盒子，里面可能有、也可能没有）
-    Optional<Transaction> optional = transactionRepository.findById(userId);
+    Optional<Transaction> optional = transactionRepository.findById(transactionId);
     // 第 2 步：盒子是空的，说明这条记录不存在
     if(!optional.isPresent()){
         throw  new IllegalArgumentException("記録が見つかりません");
