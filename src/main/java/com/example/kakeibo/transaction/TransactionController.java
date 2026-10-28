@@ -130,6 +130,18 @@ public class TransactionController {
         return "redirect:/transactions";
     }
 
+    @PostMapping("/transactions/{id}/delete")
+    public String delete(@PathVariable Long id, Authentication authentication){
+        Long userId = getCurrentUserId(authentication);
+        transactionService.delete(userId,id);
+        return "redirect:/transactions";
+    }
+
+    @GetMapping("/")
+    public String home(){
+        return "redirect:/transactions";
+    }
+
     // 辅助方法：表单页（新增、编辑共用）需要的数据
     private void prepareForm(Model model, Long userId, String formAction, String pageTitle) {
         // 当前用户的分类，按排序号排好，给下拉框用
